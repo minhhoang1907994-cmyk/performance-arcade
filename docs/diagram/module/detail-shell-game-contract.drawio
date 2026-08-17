@@ -1,0 +1,99 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Shell - Game Contract" id="devlab-shell-game">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="Shell to Game contract - js/app.js:226-233" style="text;html=1;align=left;verticalAlign=middle;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="520" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="player" value="Player" style="shape=umlLifeline;perimeter=mxPerimeter.rectanglePerimeter;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="60" y="70" width="160" height="720" as="geometry" />
+        </mxCell>
+
+        <mxCell id="shell" value="js/app.js (Shell)" style="shape=umlLifeline;perimeter=mxPerimeter.rectanglePerimeter;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="340" y="70" width="160" height="720" as="geometry" />
+        </mxCell>
+
+        <mxCell id="game" value="js/games/*.js (Game)" style="shape=umlLifeline;perimeter=mxPerimeter.rectanglePerimeter;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="620" y="70" width="160" height="720" as="geometry" />
+        </mxCell>
+
+        <mxCell id="data" value="data/*.js (window.*)" style="shape=umlLifeline;perimeter=mxPerimeter.rectanglePerimeter;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="900" y="70" width="160" height="720" as="geometry" />
+        </mxCell>
+
+        <mxCell id="store" value="localStorage" style="shape=umlLifeline;perimeter=mxPerimeter.rectanglePerimeter;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="70" width="160" height="720" as="geometry" />
+        </mxCell>
+
+        <mxCell id="m1" value="click game card" style="edgeStyle=elbowEdgeStyle;elbow=vertical;html=1;exitX=1;exitY=0.11;exitDx=0;exitDy=0;entryX=0;entryY=0.11;entryDx=0;entryDy=0;" edge="1" parent="1" source="player" target="shell">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="m2" value="startGame(id): gameById(id), clear(mount)" style="edgeStyle=elbowEdgeStyle;elbow=vertical;html=1;exitX=1;exitY=0.18;exitDx=0;exitDy=0;entryX=0;entryY=0.18;entryDx=0;entryDy=0;" edge="1" parent="1" source="shell" target="game">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="m2b" value="g.start(mount, api)&#10;api = { h, clear, shuffle, finish, quit, replay }" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="500" y="230" width="300" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="m3" value="read question bank" style="edgeStyle=elbowEdgeStyle;elbow=vertical;html=1;exitX=1;exitY=0.28;exitDx=0;exitDy=0;entryX=0;entryY=0.28;entryDx=0;entryDy=0;" edge="1" parent="1" source="game" target="data">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="m4" value="items (order NOT randomized)" style="edgeStyle=elbowEdgeStyle;elbow=vertical;html=1;dashed=1;exitX=0;exitY=0.34;exitDx=0;exitDy=0;entryX=1;entryY=0.34;entryDx=0;entryDy=0;" edge="1" parent="1" source="data" target="game">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="m5" value="render round (api.h, api.shuffle, textContent only)" style="edgeStyle=elbowEdgeStyle;elbow=vertical;html=1;exitX=0;exitY=0.43;exitDx=0;exitDy=0;entryX=1;entryY=0.43;entryDx=0;entryDy=0;" edge="1" parent="1" source="game" target="player">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="m6" value="answer / choose (repeat per round)" style="edgeStyle=elbowEdgeStyle;elbow=vertical;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="player" target="game">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="m7" value="api.finish({ score, breakdown, notes })" style="edgeStyle=elbowEdgeStyle;elbow=vertical;html=1;exitX=0;exitY=0.6;exitDx=0;exitDy=0;entryX=1;entryY=0.6;entryDx=0;entryDy=0;" edge="1" parent="1" source="game" target="shell">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="m8" value="recordPlay(): setItem(&apos;devlab-arcade-v1&apos;)" style="edgeStyle=elbowEdgeStyle;elbow=vertical;html=1;exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=0;entryY=0.7;entryDx=0;entryDy=0;" edge="1" parent="1" source="shell" target="store">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="m9" value="xp, plays, best, history" style="edgeStyle=elbowEdgeStyle;elbow=vertical;html=1;dashed=1;exitX=0;exitY=0.76;exitDx=0;exitDy=0;entryX=1;entryY=0.76;entryDx=0;entryDy=0;" edge="1" parent="1" source="store" target="shell">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="m10" value="showResult(): score, verdict, breakdown, rank" style="edgeStyle=elbowEdgeStyle;elbow=vertical;html=1;dashed=1;exitX=0;exitY=0.85;exitDx=0;exitDy=0;entryX=1;entryY=0.85;entryDx=0;entryDy=0;" edge="1" parent="1" source="shell" target="player">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="m11" value="api.replay() / api.quit()" style="edgeStyle=elbowEdgeStyle;elbow=vertical;html=1;exitX=1;exitY=0.93;exitDx=0;exitDy=0;entryX=0;entryY=0.93;entryDx=0;entryDy=0;" edge="1" parent="1" source="player" target="shell">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="note1" value="Shell owns state.&#10;A game never touches localStorage&#10;and never writes DOM outside mount." style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#f5f5f5;strokeColor=#999999;align=left;verticalAlign=top;spacingLeft=6;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1400" y="120" width="220" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="note2" value="api.shuffle is mandatory.&#10;Unshuffled data puts the good&#10;answer first every time." style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#f5f5f5;strokeColor=#999999;align=left;verticalAlign=top;spacingLeft=6;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1400" y="240" width="220" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="note3" value="showResult clamps score to 0-100&#10;before recordPlay (js/app.js:238).&#10;Every localStorage call is try/catch." style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#f5f5f5;strokeColor=#999999;align=left;verticalAlign=top;spacingLeft=6;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1400" y="360" width="220" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="note4" value="Script order in index.html is fixed:&#10;data/*.js, then js/games/*.js,&#10;then js/app.js." style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#f5f5f5;strokeColor=#999999;align=left;verticalAlign=top;spacingLeft=6;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1400" y="480" width="220" height="90" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

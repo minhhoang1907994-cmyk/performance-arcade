@@ -1,0 +1,41 @@
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+._*
+
+# Editor / IDE
+.idea/
+*.swp
+*.swo
+*~
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+
+# Local session notes (Claude Code handoff)
+.memory/
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Logs & temp
+*.log
+npm-debug.log*
+tmp/
+temp/
+.cache/
+
+# Tooling that may be added later (live server, formatters, bundlers)
+node_modules/
+dist/
+build/
+coverage/
+.parcel-cache/

@@ -1,0 +1,19 @@
+{
+  "files.eol": "\n",
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.formatOnSave": true,
+  "[markdown]": {
+    "files.trimTrailingWhitespace": false
+  },
+  "html.format.wrapLineLength": 0,
+  "javascript.preferences.quoteStyle": "single",
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.memory": true
+  },
+  "liveServer.settings.root": "/",
+  "liveServer.settings.donotShowInfoMsg": true
+}
