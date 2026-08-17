@@ -1,0 +1,32 @@
+flowchart TD
+  classDef actor fill:#E6F1FB,stroke:#185FA5,color:#0C447C
+  classDef internal fill:#EAF3DE,stroke:#3B6D11,color:#27500A
+  classDef external fill:#FAECE7,stroke:#993C1D,color:#712B13
+  classDef error fill:#FCEBEB,stroke:#A32D2D,color:#791F1F
+
+  TICK[Cron tick]:::internal
+  LOCK{Advisory lock acquired?}
+  SKIP[Another tick running - exit]:::internal
+  BELOW{Pool below A6 threshold?}
+  DONE[Release lock and stop]:::internal
+  QUOTA[Count quota per game category lang]:::internal
+  GEN[Call Gemini 2.5 Flash with JSON schema]:::external
+  VALID{Validator pass?}
+  REJV[status = rejected - purged after 30 days]:::error
+  HASH{content_hash duplicate?}
+  REJD[rejected_duplicate]:::error
+  OVER{Quota A5 full?}
+  REJQ[rejected_quota]:::error
+  ACTIVE[status = active - enters pool]:::internal
+
+  TICK --> LOCK
+  LOCK -- No --> SKIP
+  LOCK -- Yes --> BELOW
+  BELOW -- No --> DONE
+  BELOW -- Yes --> QUOTA --> GEN --> VALID
+  VALID -- No --> REJV
+  VALID -- Yes --> HASH
+  HASH -- Yes --> REJD
+  HASH -- No --> OVER
+  OVER -- Yes --> REJQ
+  OVER -- No --> ACTIVE

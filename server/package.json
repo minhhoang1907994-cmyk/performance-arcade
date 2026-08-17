@@ -1,0 +1,21 @@
+{
+  "name": "devlab-arcade-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Backend cho DevLab Arcade v2 — spec: docs/spec/devlab-arcade-v2.md",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test \"test/*.test.js\"",
+    "migrate": "node scripts/migrate.js",
+    "seed:legacy": "node scripts/seed-legacy.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "pg": "^8.16.3"
+  }
+}

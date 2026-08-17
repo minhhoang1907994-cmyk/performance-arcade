@@ -1,0 +1,41 @@
+flowchart TD
+  classDef actor fill:#E6F1FB,stroke:#185FA5,color:#0C447C
+  classDef internal fill:#EAF3DE,stroke:#3B6D11,color:#27500A
+  classDef external fill:#FAECE7,stroke:#993C1D,color:#712B13
+  classDef error fill:#FCEBEB,stroke:#A32D2D,color:#791F1F
+
+  P([Player]):::actor
+  LOGIN[Login]:::internal
+  HUB[Hub - select game]:::internal
+  START[POST /rounds]:::internal
+  POOL{Pool has enough items?}
+  EXHAUSTED[422 POOL_EXHAUSTED]:::error
+  PICK[Sample items - BR-09]:::internal
+  SHUFFLE[Shuffle choices - store order_map served_at expires_at]:::internal
+  SERVE[Send prompt via allowlist 5.3]:::internal
+  CHOOSE([Player chooses]):::actor
+  SUBMIT[POST /steps/:seq]:::internal
+  DUP{Step already answered?}
+  CONFLICT[409 STEP_ALREADY_ANSWERED]:::error
+  EXPIRED{Past expires_at? Bug Hunt only}
+  LOCK[409 STEP_EXPIRED - lock at 0 points - discard choice]:::error
+  MAP[Resolve index against order_map]:::internal
+  EFFECT[Compute effect and update round state]:::internal
+  REVEAL[Return reveal for the chosen option only]:::internal
+  MORE{More steps left?}
+  SCORE[Score the round per formula 4.4 and clamp 0-100]:::internal
+  GUEST{Guest round?}
+  NOSAVE[Not recorded - purged after 24h]:::internal
+  BEST[Upsert leaderboard_best]:::internal
+
+  P --> LOGIN --> HUB --> START --> POOL
+  POOL -- No --> EXHAUSTED
+  POOL -- Yes --> PICK --> SHUFFLE --> SERVE --> CHOOSE --> SUBMIT --> DUP
+  DUP -- Yes --> CONFLICT
+  DUP -- No --> EXPIRED
+  EXPIRED -- Yes --> LOCK --> MORE
+  EXPIRED -- No --> MAP --> EFFECT --> REVEAL --> MORE
+  MORE -- Yes --> SHUFFLE
+  MORE -- No --> SCORE --> GUEST
+  GUEST -- Yes --> NOSAVE
+  GUEST -- No --> BEST
