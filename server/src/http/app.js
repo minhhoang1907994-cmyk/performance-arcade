@@ -4,6 +4,8 @@ const express = require('express');
 
 const { createAuthService } = require('../auth/service');
 const { createAuthRouter, createMeRouter, createAdminRouter } = require('../auth/routes');
+const { createRoundService } = require('../rounds/service');
+const { createRoundsRouter } = require('../rounds/routes');
 const { createAuthMiddleware } = require('./middleware/auth');
 const { createErrorHandler, notFoundHandler } = require('./middleware/error-handler');
 const { createRateLimiter, byIp } = require('./middleware/rate-limit');
@@ -70,6 +72,7 @@ function createApp({ pool, config, logger = console }) {
 
   const authService = createAuthService({ pool, config });
   const authMiddleware = createAuthMiddleware({ config, authService });
+  const roundService = createRoundService({ pool, config, logger });
 
   app.get('/health', async (_req, res) => {
     try {
@@ -89,6 +92,7 @@ function createApp({ pool, config, logger = console }) {
           GROUP BY game_id`
       );
       const poolByGame = Object.fromEntries(rows.map((r) => [r.game_id, r.pool_available]));
+      const myBest = req.user ? await roundService.fetchMyBest(req.user.id) : {};
 
       res.json({
         games: GAME_CATALOG.map((game) => {
@@ -97,8 +101,8 @@ function createApp({ pool, config, logger = console }) {
             ...game,
             pool_available: available,
             playable: available >= game.items_per_round,
-            /* my_best điền ở slice leaderboard; hiện luôn null kể cả khi đã đăng nhập. */
-            my_best: null
+            /* null khi chưa đăng nhập hoặc chưa chơi game đó (spec 5.2). */
+            my_best: myBest[game.id] === undefined ? null : myBest[game.id]
           };
         })
       });
@@ -108,7 +112,8 @@ function createApp({ pool, config, logger = console }) {
   });
 
   app.use('/api/v1/auth', createAuthRouter({ authService, config, authMiddleware }));
-  app.use('/api/v1/me', createMeRouter({ authMiddleware }));
+  app.use('/api/v1/me', createMeRouter({ authMiddleware, roundService }));
+  app.use('/api/v1/rounds', createRoundsRouter({ roundService, authMiddleware }));
   app.use('/api/v1/admin', createAdminRouter({ authService, authMiddleware }));
 
   app.use(notFoundHandler);

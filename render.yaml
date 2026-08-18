@@ -1,0 +1,41 @@
+# Render Blueprint — DevLab Arcade v2 (API)
+#
+# Blueprint đọc từ gốc repo. Service nằm trong thư mục server/ nên dùng rootDir.
+# Trạng thái hiện tại: API auth + /health + /api/v1/games. Chưa có round/step engine,
+# chưa nối Gemini, chưa phục vụ frontend tĩnh.
+#
+# Biến có `sync: false` KHÔNG nằm trong file này — Render hỏi giá trị lúc tạo Blueprint
+# và lưu vào dashboard. Không bao giờ commit secret vào repo.
+
+services:
+  - type: web
+    name: devlab-arcade-api
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /health
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # Neon. Dùng chuỗi POOLED (hostname có -pooler) cho runtime.
+      # Migration chạy bằng chuỗi UNPOOLED — xem docs/deploy-render.md.
+      - key: DATABASE_URL
+        sync: false
+
+      # node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
+      - key: JWT_SECRET
+        sync: false
+
+      # Admin đầu tiên, tạo bởi npm run migrate. Không có endpoint HTTP nào tạo admin.
+      - key: BOOTSTRAP_ADMIN_EMAIL
+        sync: false
+      - key: BOOTSTRAP_ADMIN_PASSWORD
+        sync: false
+
+      # BR-16. Đặt false nếu muốn bắt buộc đăng nhập mới được chơi.
+      - key: ALLOW_ANONYMOUS_PLAY
+        value: "true"

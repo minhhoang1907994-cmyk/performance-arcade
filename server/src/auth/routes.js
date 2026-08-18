@@ -91,19 +91,25 @@ function createAuthRouter({ authService, config, authMiddleware }) {
   return router;
 }
 
-function createMeRouter({ authMiddleware }) {
+function createMeRouter({ authMiddleware, roundService }) {
   const router = express.Router();
 
-  router.get('/', authMiddleware.requireAuth, (req, res) => {
-    res.json({
-      user: {
-        id: req.user.id,
-        email: req.user.email,
-        display_name: req.user.display_name,
-        role: req.user.role
-      }
-      /* best score từng game sẽ bổ sung khi có leaderboard_best (slice kế tiếp). */
-    });
+  router.get('/', authMiddleware.requireAuth, async (req, res, next) => {
+    try {
+      const best = await roundService.fetchMyBest(req.user.id);
+      res.json({
+        user: {
+          id: req.user.id,
+          email: req.user.email,
+          display_name: req.user.display_name,
+          role: req.user.role
+        },
+        /* Chỉ chứa game đã chơi xong ít nhất một lượt không phải round khách (BR-16). */
+        best_scores: best
+      });
+    } catch (err) {
+      next(err);
+    }
   });
 
   return router;

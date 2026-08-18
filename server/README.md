@@ -1,6 +1,7 @@
 # DevLab Arcade — backend
 
-Theo `docs/spec/devlab-arcade-v2.md` v1.3. Giai đoạn hiện tại: **P1 — nội dung + auth**.
+Theo `docs/spec/devlab-arcade-v2.md` v1.4. Giai đoạn hiện tại: **P1 — nội dung, auth,
+round/step engine**.
 
 Chỉ có đúng hai dependency: `express` và `pg`, theo quyết định A2. Băm mật khẩu
 (scrypt), JWT HS256 và rate limit đều dùng built-in của Node, không thêm thư viện.
@@ -20,11 +21,20 @@ server/
     db/pool.js                       pool (max 5) + withTransaction
     content/                         hash, categories, 4 validator
     auth/                            password, jwt, repository, service, routes
+    rounds/
+      engines/                       luật chơi 4 game, thuần hàm, không đụng DB
+      shuffle.js                     order_map + ánh xạ ngược (BR-08, BR-17)
+      scoring.js                     điểm lượt: trung bình, làm tròn, clamp (BR-04)
+      repository.js                  truy vấn round/step/leaderboard_best
+      service.js                     transaction, quyền sở hữu, thứ tự step
+      routes.js                      POST /rounds, GET /rounds/:id, /steps, /abandon
     http/                            app, errors, cookies, 3 middleware
   test/
     validators.test.js               bộ test vàng + test âm
     auth-crypto.test.js              scrypt, JWT, email, cookie
+    rounds-engine.test.js            công thức 4 game + allowlist, không cần DB
     auth-integration.test.js         HTTP thật + Postgres thật (bỏ qua nếu thiếu DATABASE_URL)
+    rounds-integration.test.js       chơi hết lượt, hết giờ, double-submit, pool cạn
 ```
 
 ## Chạy
@@ -34,7 +44,7 @@ cd server
 npm install
 cp .env.example .env      # rồi điền DATABASE_URL và JWT_SECRET
 
-npm test                  # 60 test không cần DB
+npm test                  # 77 test không cần DB
 npm run migrate           # áp migration + tạo admin từ env
 npm run seed:legacy       # nạp 24 mục viết tay
 npm start
@@ -111,8 +121,31 @@ Cả hai đều là hiểu sai đặc tả, và cả hai đều sẽ lọt nếu
   Render free tier chạy một instance nên hiện đúng; scale ngang thì phải chuyển sang
   store dùng chung.
 
+## Ghi chú về round/step engine
+
+- **Luật chơi tách khỏi transaction.** `rounds/engines/*` là hàm thuần: nhận payload +
+  step + lựa chọn, trả về reveal/effect/step kế. `rounds/service.js` chỉ lo transaction,
+  quyền sở hữu và thứ tự step. Nhờ vậy toàn bộ công thức chấm điểm test được không cần
+  Postgres, và luật của 4 game không lẫn vào nhau.
+- **Bốn game bốn hình dạng khác nhau.** Chỉ Bug Hunt là "một câu một đáp án". Spec
+  Detective 2 step mỗi item, PROD Roulette và Incident là chuỗi step biến thiên trong
+  một kịch bản. Đừng áp một mô hình chung cho cả bốn.
+- **Chỉ Bug Hunt dùng đồng hồ thật.** `expires_at` tính bằng SQL trong chính câu lệnh
+  INSERT step, không tính bằng đồng hồ Node — `served_at` mặc định `now()` của cùng câu
+  lệnh đó, tính ở hai nơi thì hai mốc lệch nhau và bonus tốc độ chấm sai ở biên.
+- **409 `STEP_EXPIRED` không được ném từ trong transaction.** Ném là ROLLBACK, và việc
+  chốt step quá hạn ở 0 điểm bị huỷ theo — người chơi F5 lại thì step vẫn treo. Service
+  trả cờ về, route dịch thành 409 sau khi đã COMMIT. Có test khẳng định `answered_at`
+  thực sự nằm lại trong DB.
+- **`round_items` và `content_items` đều có cột `id`.** Trộn hai hàng bằng spread là
+  `round_item_id` hoá thành `content_item_id`; FK vẫn tồn tại nên lỗi chỉ nổ ở INSERT
+  `round_steps` chứ không nổ ở chỗ gây ra. Ghép tường minh từng field.
+- **`order_map` của Incident được chép sang step kế** thay vì xáo lại mỗi bước: danh
+  sách hành động nhảy vị trí sau mỗi lần bấm thì không đọc được. Lựa chọn của Incident
+  đi bằng `action_id` nên order_map ở đây chỉ phục vụ hiển thị.
+
 ## Chưa làm
 
-Round/step engine, chấm điểm server-side, leaderboard, report, pipeline gọi Gemini.
-`GET /api/v1/games` đã có nhưng `my_best` còn trả `null` cho tới khi có `leaderboard_best`.
+Leaderboard (`GET /leaderboard`), lịch sử (`GET /me/history`), report câu sai, các endpoint
+admin nội dung, cron dọn round quá hạn / round khách, pipeline gọi Gemini.
 Xem `docs/spec/devlab-arcade-v2.md` section 5 và 13 Open Questions ở section 18.

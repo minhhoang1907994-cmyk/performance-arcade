@@ -7,7 +7,7 @@
 - **Priority**: High
 - **Phase**: Spec này bao P1–P3. P4 (UI pixel-art) tách spec riêng — xem mục 21
 - **Ngày soạn**: 2026-08-17
-- **Version**: 1.3
+- **Version**: 1.4
 - **Input**: `docs/clarify/clarify_devlab-arcade-v2.md`
 
 ## 2. User Story
@@ -380,9 +380,18 @@ Response Success (`201`):
 
 `time_limit_seconds` là `null` với 3 game không có đồng hồ thật. `budget` chỉ khác `null` với Incident.
 
+Object `step` còn có `expires_at` (ISO 8601, `null` với 3 game không có đồng hồ). Chỉ `time_limit_seconds` là không đủ: khi người chơi tải lại trang giữa step, server **không** cấp `served_at` mới (BR-03a), nên nếu client đếm lại từ 60 thì đồng hồ hiển thị lệch với mốc khoá cứng phía server và người chơi mất điểm mà không hiểu vì sao.
+
 **GET /api/v1/rounds/:roundId**
 
 Trả đúng shape của `POST /rounds` với step đang chờ. Dùng khi client tải lại trang (access token nằm trong bộ nhớ nên F5 là mất — xem section 13). **Không** tạo `served_at` mới: đồng hồ Bug Hunt vẫn tính từ lần phát đầu tiên, nếu không người chơi cứ F5 là reset giờ.
+
+Khi step đang chờ đã quá `expires_at` (8.2 điều kiện C), response kèm thêm hai field:
+
+| Field | Ý nghĩa |
+|---|---|
+| `expired_step` | `{ step_seq, reveal }` của step vừa bị chốt 0 điểm |
+| `summary` | Chỉ khác `null` khi step quá hạn đó là step cuối — lượt chơi kết thúc ngay trong request này, và `step` là `null` |
 
 **POST /api/v1/rounds/:roundId/steps/:stepSeq**
 
@@ -926,6 +935,7 @@ Server so với `round_steps.order_map`; ngoài phạm vi → `400 INVALID_CHOIC
 | 1.0 | 2026-08-17 | — | Initial draft từ `docs/clarify/clarify_devlab-arcade-v2.md` |
 | 1.1 | 2026-08-17 | — | Sửa toàn bộ 6 blocker + 8 warning + 4 suggestion của `/nta-spec-review`. Thay đổi lớn: (1) API chuyển từ mô hình item sang **step**, thêm `round_steps`, `game_rounds.state`, `GET /rounds/:id`, bỏ `/finish`; (2) BR-02 chuyển từ blocklist sang **allowlist** (section 5.3 mới); (3) tách BR-03 thành 03a/03b/03c vì Incident dùng ngân sách mô phỏng chứ không phải đồng hồ thật; (4) thêm section 4.4 công thức chấm điểm verify từ source; (5) guest play dùng `user_id` nullable + `is_guest`; (6) thêm BR-15 (rescore không giảm điểm), BR-16 (guest), BR-17 (lưu thứ tự đã xáo), BR-18 (port nguyên công thức); (7) `category`/`lang` NOT NULL DEFAULT `''`; (8) thêm A5/A6, endpoint admin reset password, `ALREADY_REPORTED`, bootstrap admin, unique partial index chống race, advisory lock cho cron, retention 30 ngày cho item `rejected`. Hai điểm phát hiện khi tự kiểm bản 1.1: (9) BR-04 bổ sung xử lý trường hợp **mọi item của lượt đều bị void** (chia cho 0 với 2 game 1-item); (10) leaderboard cache đổi từ materialized view sang **bảng thường `leaderboard_best` + UPSERT**, vì `REFRESH MATERIALIZED VIEW CONCURRENTLY` không chạy được trong transaction block của Postgres |
 | 1.2 | 2026-08-17 | — | Sửa 2 blocker + 6 warning + 3 suggestion của lần review bản 1.1. **Blocker**: (1) `leaderboard_best.best_round_id` đổi sang nullable — `ON DELETE SET NULL` trên cột NOT NULL sẽ fail lúc cron dọn round khách; (2) **Bug Hunt hết 60s giờ khoá cứng ở server** (`409 STEP_EXPIRED`, 0 điểm, bỏ qua `choice`) — bản 1.1 cho trả lời không giới hạn thời gian thật, vừa lệch `bug-hunt.js:123` vừa mở đường tra Google trong bảng xếp hạng có thưởng; thêm cột `round_steps.expires_at`. **Warning**: (3) A7 chốt game chưa chơi tính 0 + trả `games_played`; (4) `round_steps.order_map` đổi thành `order_map smallint[]` + `content_snapshot_hash` để không nhân bản nội dung; (5) A8 retention `round_steps` 90 ngày; (6) bỏ IP khỏi ownership của round khách, chỉ dùng rate limit; (7) thêm response shape cho `GET /games`; (8) ghi rõ khi nào tăng `served_count`. **Suggestion**: (9) bỏ `step_seq` trùng trong `progress`; (10) `state` gom phần cục bộ vào `current_item` để Spec Detective 4 item không đọc nhầm điểm item trước; (11) thêm `ck_game_rounds_guest_ip` |
+| 1.4 | 2026-08-18 | — | Hai bổ sung phát hiện khi implement round/step engine, không đổi quyết định nào đã chốt: (1) object `step` thêm `expires_at` — chỉ `time_limit_seconds` thì client không dựng lại được đồng hồ đúng sau khi F5, vì BR-03a cấm cấp `served_at` mới; (2) `GET /rounds/:id` thêm `expired_step` và `summary` cho luồng 8.2 điều kiện C, vì khi step quá hạn là step cuối thì lượt chơi kết thúc ngay trong chính request đó và không còn step nào để trả |
 | 1.3 | 2026-08-17 | — | Không đổi nội dung kỹ thuật. Chủ project xác nhận giữ nguyên **A1** (email + password, không gửi email, admin reset tay) và **A2** (Node.js + Express) — cả hai chuyển từ *giả định* sang *quyết định đã chốt* kèm ngày và người quyết. Đóng Q1 và Q13. Số Open Questions còn 13 |
 
 ---
